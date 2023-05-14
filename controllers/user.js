@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { User } = require("../models/user");
+// const connectDB = require("../db");
 
 const useJWTToken = async (id, expires) => {
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -12,13 +13,20 @@ const useJWTToken = async (id, expires) => {
 const create = async (req, res) => {
   const SALT = 10;
   try {
-    const { email, password } = req.body;
+    const { firstName, lastName, email, phone, password, locality } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ error: "User already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, SALT);
-    const user = await User.create({ email, password: hashedPassword });
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      phone,
+      locality
+    });
 
     const token = useJWTToken(user._id, "1h");
     const { password: userPassword, ...rest } = user;
@@ -44,14 +52,13 @@ const getUser = async (req, res) => {
 
     res.status(200).json({ rest, token: newToken });
   } catch (error) {
-    res.status(500).json({ error });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const userExist = await User.findOne({ email });
     if (!userExist) {
       return res.status(401).json({ error: "User does not exist" });
