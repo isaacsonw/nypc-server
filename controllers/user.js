@@ -28,11 +28,12 @@ const create = async (req, res) => {
       locality
     });
 
-    const token = useJWTToken(user._id, "1h");
-    const { password: userPassword, ...rest } = user;
-    res.status(201).json({ rest, token });
+    const token = await useJWTToken(user._id, "1h");
+    delete user.password;
+    res.status(201).json({ user, token });
   } catch (error) {
-    res.status(500).json({ error });
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -44,13 +45,13 @@ const getUser = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (!decoded) return res.status(401).json({ error: "Unauthorized" });
 
-    const user = await User.findOne({ _id: decoded.id });
+    const user = await User.findOne({ _id: decoded.id }).populate("locality");
     if (!user) return res.status(401).json({ error: "Unauthorized" });
-    const { password: userPassword, ...rest } = user;
 
-    const newToken = useJWTToken(user._id, "1h");
+    const newToken = await useJWTToken(user._id, "1h");
 
-    res.status(200).json({ rest, token: newToken });
+    delete user.password;
+    res.status(201).json({ user, newToken });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
@@ -73,11 +74,12 @@ const login = async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = useJWTToken(userExist._id, "1h");
-    const { password: userPassword, ...rest } = userExist;
-    res.status(200).json({ rest, token });
+    const token = await useJWTToken(userExist._id, "1h");
+    delete userExist.password;
+    res.status(201).json({ user: userExist, token });
   } catch (error) {
-    res.status(500).json({ error });
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

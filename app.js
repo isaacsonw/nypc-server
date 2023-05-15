@@ -5,10 +5,11 @@ require("dotenv").config({ path: "./.env" });
 
 const app = express();
 const port = process.env.PORT || 3000;
+const uri = process.env.MONGO_URI;
 
 app.use(express.json());
 
-connectDB().catch((err) => console.log(err));
+connectDB(uri).catch((err) => console.log(err));
 
 app.use("/api/v1", authRouter);
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
