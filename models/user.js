@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema({
   locality: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Locality"
+  },
+  state: {
+    type: String,
+    required: [true, "State is required"]
   }
 });
 

@@ -10,10 +10,7 @@ const localitySchema = new mongoose.Schema({
     type: [mongoose.Schema.Types.ObjectId],
     ref: "User"
   },
-  city: {
-    type: String,
-    required: [true, "City is required"]
-  },
+
   state: {
     type: String,
     required: [true, "State is required"]
