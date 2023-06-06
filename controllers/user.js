@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { User } = require("../models/user");
-const { Locality } = require("../models/locality");
 const fetch = require("node-fetch");
+const isAuth = require("../utils/isAuth");
 // const connectDB = require("../db");
 
 const useJWTToken = async (id, expires) => {
@@ -49,20 +49,9 @@ const create = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const token = req.headers.authorization.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "Unauthorized" });
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded) return res.status(401).json({ error: "Unauthorized" });
-
-    const user = await User.findOne({ _id: decoded.id }).populate("locality", {
-      name: 1
-    });
-    if (!user) return res.status(401).json({ error: "Unauthorized" });
+    const user = await isAuth(req);
 
     const newToken = await useJWTToken(user._id, "1h");
-
-    delete user.password;
     res.status(201).json({ user, token: newToken });
   } catch (error) {
     console.log(error);
@@ -90,7 +79,6 @@ const login = async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
     const token = await useJWTToken(userExist._id, "1h");
-    delete userExist.password;
     res.status(201).json({ user: userExist, token });
   } catch (error) {
     console.log(error);
